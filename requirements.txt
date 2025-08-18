@@ -8,3 +8,5 @@ tqdm>=4.65.0
 matplotlib>=3.7.0
 scikit-learn>=1.2.0
 langchain>=0.0.267
+litellm>=1.0.0
+argparse>=1.4.0
