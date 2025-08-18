@@ -1,66 +1,76 @@
-# LLM-based Robust Q&A with Self-Improving Prompts
 
-A test project demonstrating the use of DSPy for building a question-answering system with OpenRouter integration via LiteLLM.
+# LLM-based Classification with OpenRouter and DSPy
 
-## Project Goal
+This project demonstrates a simple, extensible pipeline for LLM-based classification using OpenRouter (via LiteLLM) and DSPy.
 
-Build a simple pipeline where an LLM answers questions about provided context using DSPy and OpenRouter, with basic evaluation metrics.
+## Project Overview
+
+- **Intro Example:** Loads a CSV dataset of simple math addition questions (e.g., "What is 2 + 3?") and uses an LLM to answer and evaluate them. This serves as a minimal working example for LLM-based classification.
+- **Extensible Design:** The same pipeline can be adapted to classify any other content, mapping inputs to classes or labels using LLMs.
+- Uses OpenRouter LLMs (via LiteLLM) to answer/classify each input.
+- Compares the model's answer to the reference/class label in the CSV.
+- Prints results and calculates accuracy.
+
 
 ## Structure
 
-1. **Data Utilities**: Simple dataset loading and management functions
-2. **DSPy Integration**: Custom integration with OpenRouter via LiteLLM
-3. **Evaluation**: Basic metrics for evaluating question answering performance
-4. **Main Pipeline**: Orchestration of the Q&A process
+- `data/`: Contains datasets, e.g., `math_addition_questions.csv` (math example) or future classification datasets.
+- `src/main.py`: Loads the dataset, queries the LLM, and evaluates results.
+- `src/generate_math_dataset.py`: Script to generate a CSV of random math addition questions (intro example).
 
-## Features
-
-- Question answering on provided context
-- Integration with OpenRouter through LiteLLM
-- Custom DSPy language model wrapper
-- Simple evaluation metrics
-- Command-line arguments for configuration
 
 ## Setup
 
 1. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
+	```bash
+	python -m venv venv
+	source venv/bin/activate  # On Windows: venv\Scripts\activate
+	```
 2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
+	```bash
+	pip install -r requirements.txt
+	```
 3. Create a `.env` file in the project root with your OpenRouter API key:
-```
-OPENROUTER_API_KEY=your_api_key_here
-```
+	```
+	OPENROUTER_API_KEY=your_api_key_here
+	```
+
 
 ## Usage
 
-Run the main script:
+1. (Optional) Generate the math addition dataset (intro example):
+	```bash
+	python src/generate_math_dataset.py
+	```
+2. Run the main script to answer/classify and evaluate:
+	```bash
+	python src/main.py
+	```
 
-```bash
-python src/main.py
+The script will print each question/input, the model's answer/classification, the reference/class label, and whether it was correct. At the end, it prints the overall accuracy.
+
+
+## Customization & Extending
+
+- To use a different model, edit the `model` argument in `ask_openrouter()` in `src/main.py` or the `model_name` parameter.
+- To use your own dataset, place a CSV in the `data/` folder with columns: `question`, `answer`, and optionally `context`.
+
+
+## Example Output (Math Addition)
+
+```
+Q: What is 2 + 3?
+OpenRouter Answer: 5
+Reference: 5
+Correct: True
+---
+...
+Accuracy: 9/10 = 0.90
 ```
 
-Additional options:
-- `--model` - Specify the OpenRouter model to use
-- `--save-data` - Save sample data to CSV
-- `--debug` - Print debug information
 
-Example:
-```bash
-python src/main.py --model openrouter/google/gemma-3-4b-it:free --debug
-```
+## Roadmap & Extending
 
-## Extending
-
-To extend this project:
-1. Add more complex DSPy modules in `dspy_integration.py`
-2. Add your own datasets in `data_utils.py`
-3. Implement more sophisticated evaluation metrics in `evaluation.py`
-4. Modify the pipeline in `main.py` as needed
+- Add more complex question types or classification datasets
+- Integrate DSPy for prompt optimization or advanced pipelines.
+- Implement more sophisticated evaluation metrics.

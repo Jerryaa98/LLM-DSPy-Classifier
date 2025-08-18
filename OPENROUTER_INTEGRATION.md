@@ -35,11 +35,12 @@ OpenRouter provides access to various LLMs through a unified API. To use it:
    OPENROUTER_API_KEY=your_openrouter_api_key_here
    ```
 
-4. Optionally, you can change the model in `config.py`. Some popular options:
+4. Optionally, you can change the model in `config.py`. Some popular options (free options also available in the code):
    - `anthropic/claude-3-opus:beta`
    - `anthropic/claude-3-sonnet:beta`
    - `google/gemini-pro`
    - `meta-llama/llama-3-70b-instruct`
+   
 
 ## Running the Project
 
