@@ -50,7 +50,13 @@ def generate_html_content_classification_csv(html_txt_path, csv_path):
     print(f"CSV file updated at: {csv_path}")
 
 if __name__ == "__main__":
-    for html_txt_file in os.listdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "html")):
-        html_txt_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "html", html_txt_file)
-        csv_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "html_content_classification.csv")
-        generate_html_content_classification_csv(html_txt_file, csv_file)
+    html_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "html")
+    csv_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "html_content_classification.csv")
+    html_files = [f for f in os.listdir(html_dir) if f.endswith('.txt')]
+    html_files.sort()  # Sort filenames for consistent order
+    # Remove CSV if it exists to avoid duplicate appends
+    if os.path.exists(csv_file):
+        os.remove(csv_file)
+    for html_txt_file in html_files:
+        html_txt_path = os.path.join(html_dir, html_txt_file)
+        generate_html_content_classification_csv(html_txt_path, csv_file)

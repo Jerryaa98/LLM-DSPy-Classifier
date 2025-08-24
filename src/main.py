@@ -254,8 +254,8 @@ def benchmark_html_vs_md():
                 "without any other additions even a point: "
             )
             model_name = "openrouter/mistralai/mistral-small-3.1-24b-instruct:free"
-            html_answer = ask_openrouter(prompt=model_role_html + html_question, model=model_name)
-            md_answer = ask_openrouter(prompt=model_role_md + md_question, model=model_name)
+            html_answer = ask_openrouter(prompt=model_role_html + html_question, model=model_name).replace('.', '')
+            md_answer = ask_openrouter(prompt=model_role_md + md_question, model=model_name).replace('.', '')
             html_answer_clean = str(html_answer).strip().lower()
             md_answer_clean = str(md_answer).strip().lower()
             reference_clean = reference.lower()

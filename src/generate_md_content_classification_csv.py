@@ -34,7 +34,11 @@ def generate_md_content_classification_csv(md_file_path, csv_path):
 if __name__ == "__main__":
 	md_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "md")
 	csv_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "md_content_classification.csv")
-	for md_file in os.listdir(md_dir):
-		if md_file.endswith('.md'):
-			md_file_path = os.path.join(md_dir, md_file)
-			generate_md_content_classification_csv(md_file_path, csv_file)
+	md_files = [f for f in os.listdir(md_dir) if f.endswith('.md')]
+	md_files.sort()  # Sort filenames for consistent order
+	# Remove CSV if it exists to avoid duplicate appends
+	if os.path.exists(csv_file):
+		os.remove(csv_file)
+	for md_file in md_files:
+		md_file_path = os.path.join(md_dir, md_file)
+		generate_md_content_classification_csv(md_file_path, csv_file)
