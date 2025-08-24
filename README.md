@@ -1,7 +1,10 @@
-
 # LLM-based Classification with OpenRouter and DSPy
 
 This project demonstrates a simple, extensible pipeline for LLM-based classification using OpenRouter (via LiteLLM) and DSPy.
+
+## License
+
+© 2025 auura inc. All rights reserved.
 
 ## Project Overview
 
