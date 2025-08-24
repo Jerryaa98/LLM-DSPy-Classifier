@@ -1,3 +1,4 @@
+import time
 """
 Script to load a CSV of math questions, answer them with OpenRouter, and compare to the reference answer.
 
@@ -216,6 +217,91 @@ def main_website():
     # Print the overall accuracy
     print(f"Accuracy: {correct}/{total} = {correct/total:.2f}")
     
+def benchmark_html_vs_md():
+        """
+        Compare LLM outputs for HTML and Markdown content, log differences to a CSV.
+        """
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+        html_csv = os.path.join(data_dir, "html_content_classification.csv")
+        md_csv = os.path.join(data_dir, "md_content_classification.csv")
+        log_csv = os.path.join(data_dir, "benchmark_html_vs_md.csv")
+
+        if not os.path.exists(html_csv) or not os.path.exists(md_csv):
+            print("Both html_content_classification.csv and md_content_classification.csv must exist.")
+            return
+
+        df_html = pd.read_csv(html_csv)
+        df_md = pd.read_csv(md_csv)
+
+        # Try to align by row index (assumes same order and length)
+        min_len = min(len(df_html), len(df_md))
+        results = []
+        for idx in range(min_len):
+            html_row = df_html.iloc[idx]
+            md_row = df_md.iloc[idx]
+            html_question = html_row['question'] + html_row['context']
+            md_question = md_row['question'] + md_row['context']
+            reference = str(html_row['answer']).strip()
+
+            model_role_html = (
+                "You are a website classification model. "
+                "Classify the following HTML content as a funding opportunity or not using only yes or no as an answer "
+                "without any other additions even a point: "
+            )
+            model_role_md = (
+                "You are a website classification model. "
+                "Classify the following Markdown content as a funding opportunity or not using only yes or no as an answer "
+                "without any other additions even a point: "
+            )
+            model_name = "openrouter/mistralai/mistral-small-3.1-24b-instruct:free"
+            html_answer = ask_openrouter(prompt=model_role_html + html_question, model=model_name)
+            md_answer = ask_openrouter(prompt=model_role_md + md_question, model=model_name)
+            html_answer_clean = str(html_answer).strip().lower()
+            md_answer_clean = str(md_answer).strip().lower()
+            reference_clean = reference.lower()
+            match = html_answer_clean == md_answer_clean
+            html_correct = html_answer_clean == reference_clean
+            md_correct = md_answer_clean == reference_clean
+            results.append({
+                "index": idx,
+                "reference": reference,
+                "html_answer": html_answer,
+                "md_answer": md_answer,
+                "answers_match": match,
+                "html_correct": html_correct,
+                "md_correct": md_correct
+            })
+            print(f"Sample {idx}: HTML='{html_answer}' | MD='{md_answer}' | Match={match} | Ref={reference}")
+            time.sleep(5)
+        df_results = pd.DataFrame(results)
+        df_results.to_csv(log_csv, index=False)
+        html_total = len(df_results)
+        html_correct = df_results['html_correct'].sum()
+        md_correct = df_results['md_correct'].sum()
+        html_acc = html_correct / html_total if html_total else 0
+        md_acc = md_correct / html_total if html_total else 0
+        print(f"\nHTML correct: {html_correct}/{html_total} = {html_acc:.2f}")
+        print(f"MD correct:   {md_correct}/{html_total} = {md_acc:.2f}")
+        if html_acc > md_acc:
+            print("HTML classification had a higher success rate.")
+        elif md_acc > html_acc:
+            print("Markdown classification had a higher success rate.")
+        else:
+            print("Both had the same success rate.")
+        # Log summary row at the end of the CSV
+        summary_row = {
+            'index': 'SUMMARY',
+            'reference': '',
+            'html_answer': '',
+            'md_answer': '',
+            'answers_match': '',
+            'html_correct': html_correct,
+            'md_correct': md_correct
+        }
+        df_results = pd.concat([df_results, pd.DataFrame([summary_row])], ignore_index=True)
+        df_results.to_csv(log_csv, index=False)
+        print(f"Benchmark results saved to {log_csv}")
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run OpenRouter evaluation scripts.")
     print('Please enter one of the arguments to run the required task:\n'
@@ -223,13 +309,14 @@ if __name__ == "__main__":
           ' - website\n'
           ' - html\n'
           ' - md\n'
+          ' - benchmark\n'
           ' (default: --task math)')
     
     parser.add_argument(
         "--task",
-        choices=["math", "website", "html", "md"],
+        choices=["math", "website", "html", "md", "benchmark"],
         default='math',
-        help="Which main function to run: math, website, html, or md (default: math)"
+        help="Which main function to run: math, website, html, md, or benchmark (default: math)"
     )
     args = parser.parse_args()
 
@@ -241,4 +328,6 @@ if __name__ == "__main__":
         main_html()
     elif args.task == "md":
         main_md()
+    elif args.task == "benchmark":
+        benchmark_html_vs_md()
     

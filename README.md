@@ -54,8 +54,9 @@ This project demonstrates a simple, extensible pipeline for LLM-based classifica
 	 ```bash
 	 python src/main.py
 	 ```
-	 By default, this will run the math example. To classify HTML or Markdown datasets, edit the main block in `src/main.py` to call `main_html()` or `main_md()` respectively, or use command-line arguments if implemented.
+	 By default, this will run the math example. To classify other types of data you cann pass a different argument in the parser when calling the script.
 
+	 
 	 The script will print each question/input, the model's answer/classification, the reference/class label, and whether it was correct. At the end, it prints the overall accuracy.
 
 3. (Optional) Generate HTML or Markdown classification datasets:
