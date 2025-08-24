@@ -12,6 +12,7 @@ import os
 import pandas as pd
 from litellm import completion
 from dotenv import load_dotenv
+import argparse
 
 # Load environment variables from .env file
 load_dotenv()
@@ -82,6 +83,92 @@ def main_math():
     # Print the overall accuracy
     print(f"Accuracy: {correct}/{total} = {correct/total:.2f}")
     
+def main_md():
+    """
+    Main function to load Markdown content, answer with OpenRouter, and compare to reference answers.
+    """
+    # Path to the provided Markdown content CSV
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+    csv_path = os.path.join(data_dir, "md_content_classification.csv")
+    if not os.path.exists(csv_path):
+        print(f"CSV file not found: {csv_path}")
+        return
+
+    # Load questions from CSV into a DataFrame
+    df = pd.read_csv(csv_path)
+    print(f"Loaded {len(df)} Markdown content samples.")
+
+    correct = 0  # Counter for correct answers
+    total = 0    # Counter for total questions
+
+    # Iterate over each question in the dataset
+    for idx, row in df.iterrows():
+        question = row['question'] + row['context']
+        reference = str(row['answer']).strip()
+        # Add a system prompt to encourage the model to answer with only yes/no
+        model_role = (
+            "You are a website classification model. "
+            "Classify the following Markdown content as a funding opportunity or not using only yes or no as an answer "
+            "without any other additions even a point: "
+        )
+        # Send the prompt to the model
+        model_name = "openrouter/mistralai/mistral-small-3.1-24b-instruct:free"
+        answer = ask_openrouter(prompt=model_role + question,
+                                model=model_name)
+        # Compare the model's answer to the reference answer
+        is_correct = (str(answer).strip().lower() == str(reference).strip().lower())
+        # Print the question, model answer, reference, and correctness
+        print(f"Q: {question}\nOpenRouter Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
+        total += 1
+        if is_correct:
+            correct += 1
+
+    # Print the overall accuracy
+    print(f"Accuracy: {correct}/{total} = {correct/total:.2f}")
+
+def main_html():
+    """
+    Main function to load HTML content, answer with OpenRouter, and compare to reference answers.
+    """
+    # Path to the provided HTML content CSV
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+    csv_path = os.path.join(data_dir, "html_content_classification.csv")
+    if not os.path.exists(csv_path):
+        print(f"CSV file not found: {csv_path}")
+        return
+
+    # Load questions from CSV into a DataFrame
+    df = pd.read_csv(csv_path)
+    print(f"Loaded {len(df)} HTML content samples.")
+
+    correct = 0  # Counter for correct answers
+    total = 0    # Counter for total questions
+
+    # Iterate over each question in the dataset
+    for idx, row in df.iterrows():
+        question = row['question'] + row['context']
+        reference = str(row['answer']).strip()
+        # Add a system prompt to encourage the model to answer with only yes/no
+        model_role = (
+            "You are a website classification model. "
+            "Classify the following HTML content as a funding opportunity or not using only yes or no as an answer "
+            "without any other additions even a point: "
+        )
+        # Send the prompt to the model
+        model_name = "openrouter/mistralai/mistral-small-3.1-24b-instruct:free"
+        answer = ask_openrouter(prompt=model_role + question,
+                                model=model_name)
+        # Compare the model's answer to the reference answer
+        is_correct = (str(answer).strip().lower() == str(reference).strip().lower())
+        # Print the question, model answer, reference, and correctness
+        print(f"Q: {question}\nOpenRouter Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
+        total += 1
+        if is_correct:
+            correct += 1
+
+    # Print the overall accuracy
+    print(f"Accuracy: {correct}/{total} = {correct/total:.2f}")
+    
 def main_website():
     """
     Main function to load website links, answer them with OpenRouter, and compare to reference answers.
@@ -130,5 +217,28 @@ def main_website():
     print(f"Accuracy: {correct}/{total} = {correct/total:.2f}")
     
 if __name__ == "__main__":
-    # main_math()
-    main_website()
+    parser = argparse.ArgumentParser(description="Run OpenRouter evaluation scripts.")
+    print('Please enter one of the arguments to run the required task:\n'
+          ' - math\n'
+          ' - website\n'
+          ' - html\n'
+          ' - md\n'
+          ' (default: --task math)')
+    
+    parser.add_argument(
+        "--task",
+        choices=["math", "website", "html", "md"],
+        default='math',
+        help="Which main function to run: math, website, html, or md (default: math)"
+    )
+    args = parser.parse_args()
+
+    if args.task == "math":
+        main_math()
+    elif args.task == "website":
+        main_website()
+    elif args.task == "html":
+        main_html()
+    elif args.task == "md":
+        main_md()
+    

@@ -12,11 +12,15 @@ This project demonstrates a simple, extensible pipeline for LLM-based classifica
 - Prints results and calculates accuracy.
 
 
+
 ## Structure
 
-- `data/`: Contains datasets, e.g., `math_addition_questions.csv` (math example) or future classification datasets.
-- `src/main.py`: Loads the dataset, queries the LLM, and evaluates results.
+- `data/`: Contains datasets, e.g., `math_addition_questions.csv` (math example), `html_content_classification.csv` (HTML classification), `md_content_classification.csv` (Markdown classification), etc.
+- `src/main.py`: Loads the dataset, queries the LLM, and evaluates results. Supports math, website, HTML, and Markdown classification.
 - `src/generate_math_dataset.py`: Script to generate a CSV of random math addition questions (intro example).
+- `src/generate_html_content_classification_csv.py`: Converts HTML `.txt` files in `data/html/` to a classification CSV for LLMs.
+- `src/html2md.py`: Converts HTML `.txt` files in a directory to Markdown `.md` files in another directory.
+- `src/generate_md_content_classification_csv.py`: Converts Markdown `.md` files in `data/md/` to a classification CSV for LLMs.
 
 
 ## Setup
@@ -42,18 +46,41 @@ This project demonstrates a simple, extensible pipeline for LLM-based classifica
 	```bash
 	python src/generate_math_dataset.py
 	```
-2. Run the main script to answer/classify and evaluate:
-	```bash
-	python src/main.py
-	```
 
-The script will print each question/input, the model's answer/classification, the reference/class label, and whether it was correct. At the end, it prints the overall accuracy.
+2. Run the main script to answer/classify and evaluate:
+	 ```bash
+	 python src/main.py
+	 ```
+	 By default, this will run the math example. To classify HTML or Markdown datasets, edit the main block in `src/main.py` to call `main_html()` or `main_md()` respectively, or use command-line arguments if implemented.
+
+	 The script will print each question/input, the model's answer/classification, the reference/class label, and whether it was correct. At the end, it prints the overall accuracy.
+
+3. (Optional) Generate HTML or Markdown classification datasets:
+	 - To convert HTML `.txt` files to a CSV:
+		 ```bash
+		 python src/generate_html_content_classification_csv.py
+		 ```
+	 - To convert HTML `.txt` files to Markdown:
+		 ```bash
+		 python src/html2md.py html md
+		 ```
+	 - To convert Markdown `.md` files to a CSV:
+		 ```bash
+		 python src/generate_md_content_classification_csv.py
+		 ```
+
+4. (Optional) Count the number of rows in the Markdown classification CSV:
+	 ```bash
+	 python src/count_md_rows.py
+	 ```
+
 
 
 ## Customization & Extending
 
 - To use a different model, edit the `model` argument in `ask_openrouter()` in `src/main.py` or the `model_name` parameter.
 - To use your own dataset, place a CSV in the `data/` folder with columns: `question`, `answer`, and optionally `context`.
+- To classify HTML or Markdown content, use the provided scripts to generate the appropriate CSVs, then run the main script with the corresponding function.
 
 
 ## Example Output (Math Addition)
