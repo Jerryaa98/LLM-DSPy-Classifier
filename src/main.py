@@ -26,7 +26,11 @@ class ClassifierModule(dspy.Module):
         self.model = dspy.LM(model=model_name)
 
     def forward(self, context, question):
-        prompt = f"{question}\n{context}\nAnswer only yes or no."
+        prompt = f"""
+        You are a website classification model. \n
+        Classify the following content as a funding opportunity or not using only yes or no as an answer\n
+        without any other additions even a point: {question}\n{context}\n
+        """
         response = self.model(prompt)
         # Ensure response is string
         if isinstance(response, list):
@@ -38,8 +42,30 @@ class ClassifierModule(dspy.Module):
             answer = response.strip().lower()
         return dspy.Prediction(answer=answer)
 
-def classify_with_dspy(context, question, model_name="openrouter/mistralai/mistral-small-3.1-24b-instruct:free"):
-    module = ClassifierModule(model_name=model_name)
+
+class MathClassifierModule(dspy.Module):
+    def __init__(self, model_name="openrouter/mistralai/mistral-small-3.1-24b-instruct:free"):
+        super().__init__()
+        self.model = dspy.LM(model=model_name)
+
+    def forward(self, context, question):
+        prompt = f"{question}\n{context}\nyou are a math student,  answer only the number without any additional points or symbols."
+        response = self.model(prompt)
+        # Ensure response is string
+        if isinstance(response, list):
+            response = response[0]
+        response = str(response)
+        # Extract only yes/no
+        answer = response.strip().split()[0].lower()
+        if answer not in ["yes", "no"]:
+            answer = response.strip().lower()
+        return dspy.Prediction(answer=answer)
+
+def classify_with_dspy(context, question, model_name="openrouter/mistralai/mistral-small-3.1-24b-instruct:free", math=False):
+    if math:
+        module = MathClassifierModule(model_name=model_name)
+    else:
+        module = ClassifierModule(model_name=model_name)
     pred = module(context=context, question=question)
     return pred.answer
 
@@ -92,7 +118,7 @@ def main_math():
         question = row['question']
         reference = str(row['answer']).strip()
         # Use DSPy for classification
-        answer = classify_with_dspy(context, question)
+        answer = classify_with_dspy(context, question, math=True)
         is_correct = (str(answer).replace('.', '').replace('*', '') == str(reference).replace('.', '').replace('*', ''))
         print(f"Q: {question}\nDSPy Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
         total += 1
