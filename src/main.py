@@ -9,11 +9,39 @@ This script demonstrates how to:
 4. Calculate and print the overall accuracy.
 """
 
+
 import os
 import pandas as pd
 from litellm import completion
 from dotenv import load_dotenv
 import argparse
+
+# DSPy integration
+import dspy
+
+
+class ClassifierModule(dspy.Module):
+    def __init__(self, model_name="openrouter/mistralai/mistral-small-3.1-24b-instruct:free"):
+        super().__init__()
+        self.model = dspy.LM(model=model_name)
+
+    def forward(self, context, question):
+        prompt = f"{question}\n{context}\nAnswer only yes or no."
+        response = self.model(prompt)
+        # Ensure response is string
+        if isinstance(response, list):
+            response = response[0]
+        response = str(response)
+        # Extract only yes/no
+        answer = response.strip().split()[0].lower()
+        if answer not in ["yes", "no"]:
+            answer = response.strip().lower()
+        return dspy.Prediction(answer=answer)
+
+def classify_with_dspy(context, question, model_name="openrouter/mistralai/mistral-small-3.1-24b-instruct:free"):
+    module = ClassifierModule(model_name=model_name)
+    pred = module(context=context, question=question)
+    return pred.answer
 
 # Load environment variables from .env file
 load_dotenv()
@@ -57,23 +85,16 @@ def main_math():
     correct = 0  # Counter for correct answers
     total = 0    # Counter for total questions
 
-    # Iterate over each question in the dataset
+
+    # Iterate over each question in the dataset using DSPy
     for idx, row in df.iterrows():
+        context = ""  # No context for math, just the question
         question = row['question']
         reference = str(row['answer']).strip()
-        # Add a system prompt to encourage the model to answer with only the number
-        model_role = (
-            "You are a math student who is asked some basic addition questions. "
-            "Answer me only the number without any additional context. "
-        )
-        # Send the prompt to the model
-        model_name = "openrouter/mistralai/mistral-small-3.1-24b-instruct:free"
-        answer = ask_openrouter(prompt = model_role + question,
-                                model=model_name) # Uses Mistral by default
-        # Compare the model's answer to the reference answer
-        is_correct = (str(answer) == str(reference))
-        # Print the question, model answer, reference, and correctness
-        print(f"Q: {question}\nOpenRouter Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
+        # Use DSPy for classification
+        answer = classify_with_dspy(context, question)
+        is_correct = (str(answer).replace('.', '').replace('*', '') == str(reference).replace('.', '').replace('*', ''))
+        print(f"Q: {question}\nDSPy Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
         total += 1
         if is_correct:
             correct += 1
@@ -102,29 +123,18 @@ def main_md():
     correct = 0  # Counter for correct answers
     total = 0    # Counter for total questions
 
-    # Iterate over each question in the dataset
+    # Iterate over each question in the dataset using DSPy
     for idx, row in df.iterrows():
-        question = row['question'] + row['context']
+        context = row['context']
+        question = row['question']
         reference = str(row['answer']).strip()
-        # Add a system prompt to encourage the model to answer with only yes/no
-        model_role = (
-            "You are a website classification model. "
-            "Classify the following Markdown content as a funding opportunity or not using only yes or no as an answer "
-            "without any other additions even a point: "
-        )
-        # Send the prompt to the model
-        model_name = "openrouter/mistralai/mistral-small-3.1-24b-instruct:free"
-        answer = ask_openrouter(prompt=model_role + question,
-                                model=model_name)
-        # Compare the model's answer to the reference answer
-        is_correct = (str(answer).strip().lower() == str(reference).strip().lower())
-        # Print the question, model answer, reference, and correctness
-        print(f"Q: {question}\nOpenRouter Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
+        answer = classify_with_dspy(context, question)
+        is_correct = (str(answer).strip().lower().replace('.', '').replace('*', '') == str(reference).strip().lower().replace('.', '').replace('*', ''))
+        print(f"Q: {question}\nDSPy Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
         total += 1
         if is_correct:
             correct += 1
 
-    # Print the overall accuracy
     print(f"Accuracy: {correct}/{total} = {correct/total:.2f}")
 
 def main_html():
@@ -145,29 +155,18 @@ def main_html():
     correct = 0  # Counter for correct answers
     total = 0    # Counter for total questions
 
-    # Iterate over each question in the dataset
+    # Iterate over each question in the dataset using DSPy
     for idx, row in df.iterrows():
-        question = row['question'] + row['context']
+        context = row['context']
+        question = row['question']
         reference = str(row['answer']).strip()
-        # Add a system prompt to encourage the model to answer with only yes/no
-        model_role = (
-            "You are a website classification model. "
-            "Classify the following HTML content as a funding opportunity or not using only yes or no as an answer "
-            "without any other additions even a point: "
-        )
-        # Send the prompt to the model
-        model_name = "openrouter/mistralai/mistral-small-3.1-24b-instruct:free"
-        answer = ask_openrouter(prompt=model_role + question,
-                                model=model_name)
-        # Compare the model's answer to the reference answer
-        is_correct = (str(answer).strip().lower() == str(reference).strip().lower())
-        # Print the question, model answer, reference, and correctness
-        print(f"Q: {question}\nOpenRouter Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
+        answer = classify_with_dspy(context, question)
+        is_correct = (str(answer).strip().lower().replace('.', '').replace('*', '') == str(reference).strip().lower().replace('.', '').replace('*', ''))
+        print(f"Q: {question}\nDSPy Answer: {answer}\nReference: {reference}\nCorrect: {is_correct}\n---")
         total += 1
         if is_correct:
             correct += 1
 
-    # Print the overall accuracy
     print(f"Accuracy: {correct}/{total} = {correct/total:.2f}")
     
     
