@@ -9,7 +9,6 @@ This script demonstrates how to:
 4. Calculate and print the overall accuracy.
 """
 
-
 import os
 import pandas as pd
 from litellm import completion
@@ -23,7 +22,15 @@ import dspy
 class ClassifierModule(dspy.Module):
     def __init__(self, model_name="openrouter/mistralai/mistral-small-3.1-24b-instruct:free"):
         super().__init__()
-        self.model = dspy.LM(model=model_name)
+        self.model = dspy.LM(
+                    model=model_name,
+                    api_base="https://openrouter.ai/api/v1",
+                    api_key=os.getenv("OPENROUTER_API_KEY"),
+                    )
+        dspy.configure(lm=self.model)
+        self.question = dspy.InputField(desc = "User's description and question")
+        self.answer = dspy.OutputField(desc = "1 word, Yes or No without any other additions or symbols")
+        self.chain_of_thought = dspy.ChainOfThought('description_question -> one_word_answer')
 
     def forward(self, context, question):
         prompt = f"""
@@ -31,17 +38,8 @@ class ClassifierModule(dspy.Module):
         Classify the following content as a funding opportunity or not using only yes or no as an answer\n
         without any other additions even a point: {question}\n{context}\n
         """
-        response = self.model(prompt)
-        # Ensure response is string
-        if isinstance(response, list):
-            response = response[0]
-        response = str(response)
-        # Extract only yes/no
-        answer = response.strip().split()[0].lower()
-        if answer not in ["yes", "no"]:
-            answer = response.strip().lower()
+        answer = self.chain_of_thought(description_question=prompt).one_word_answer
         return dspy.Prediction(answer=answer)
-
 
 class MathClassifierModule(dspy.Module):
     def __init__(self, model_name="openrouter/mistralai/mistral-small-3.1-24b-instruct:free"):
@@ -307,4 +305,3 @@ if __name__ == "__main__":
         main_md()
     elif args.task == "benchmark":
         benchmark_html_vs_md()
-    
