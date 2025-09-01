@@ -216,26 +216,18 @@ def benchmark_html_vs_md():
         for idx in range(min_len):
             html_row = df_html.iloc[idx]
             md_row = df_md.iloc[idx]
-            html_question = html_row['question'] + html_row['context']
-            md_question = md_row['question'] + md_row['context']
+            html_context = html_row['context']
+            html_question = html_row['question']
+            md_context = md_row['context']
+            md_question = md_row['question']
             reference = str(html_row['answer']).strip()
 
-            model_role_html = (
-                "You are a website classification model. "
-                "Classify the following HTML content as a funding opportunity or not using only yes or no as an answer "
-                "without any other additions even a point: "
-            )
-            model_role_md = (
-                "You are a website classification model. "
-                "Classify the following Markdown content as a funding opportunity or not using only yes or no as an answer "
-                "without any other additions even a point: "
-            )
-            model_name = "openrouter/mistralai/mistral-small-3.1-24b-instruct:free"
-            html_answer = ask_openrouter(prompt=model_role_html + html_question, model=model_name).replace('.', '')
-            md_answer = ask_openrouter(prompt=model_role_md + md_question, model=model_name).replace('.', '')
-            html_answer_clean = str(html_answer).strip().lower()
-            md_answer_clean = str(md_answer).strip().lower()
-            reference_clean = reference.lower()
+            # Use DSPy ClassifierModule for both HTML and MD
+            html_answer = classify_with_dspy(html_context, html_question)
+            md_answer = classify_with_dspy(md_context, md_question)
+            html_answer_clean = str(html_answer).strip().lower().replace('.', '')
+            md_answer_clean = str(md_answer).strip().lower().replace('.', '')
+            reference_clean = reference.lower().replace('.', '')
             match = html_answer_clean == md_answer_clean
             html_correct = html_answer_clean == reference_clean
             md_correct = md_answer_clean == reference_clean
