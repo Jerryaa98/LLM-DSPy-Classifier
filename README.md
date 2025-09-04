@@ -26,7 +26,10 @@ This project demonstrates a simple, extensible pipeline for LLM-based classifica
 - `src/generate_md_content_classification_csv.py`: Converts Markdown `.md` files in `data/md/` to a classification CSV for LLMs.
 
 
+
 ## Setup
+
+### Local (Python)
 
 1. Create a virtual environment:
 	```bash
@@ -41,6 +44,28 @@ This project demonstrates a simple, extensible pipeline for LLM-based classifica
 	```
 	OPENROUTER_API_KEY=your_api_key_here
 	```
+
+### Docker
+
+1. Build and run the app using Docker Compose:
+	```bash
+	docker-compose up --build
+	```
+   This will build the image and run the main script. To run a different task, edit the `command:` in `docker-compose.yml` or override it:
+	```bash
+	docker-compose run --rm dspy-app python3 src/main.py --task math
+	```
+
+2. Pass your OpenRouter API key as an environment variable (recommended):
+	- Create a `.env` file in the project root with:
+	  ```
+	  OPENROUTER_API_KEY=your_api_key_here
+	  ```
+	- Or export it in your shell before running Docker Compose:
+	  ```bash
+	  export OPENROUTER_API_KEY=your_api_key_here
+	  docker-compose up
+	  ```
 
 
 ## Usage
